@@ -1,4 +1,3 @@
-
 import sys
 import numpy as np
 import pygame
@@ -31,7 +30,8 @@ def mandelbrot_smooth(width, height, xmin, xmax, ymin, ymax, max_iter):
     for i in range(max_iter):
         Za = Z[alive] * Z[alive] + C[alive]
         Z[alive] = Za
-        mag2 = Za.real * Za.real + Za.imag * Za.imag        
+
+        mag2 = Za.real * Za.real + Za.imag * Za.imag
         escaped = mag2 > 4.0
 
         if escaped.any():
@@ -41,7 +41,7 @@ def mandelbrot_smooth(width, height, xmin, xmax, ymin, ymax, max_iter):
                 break
     interior = it > max_iter
     with np.errstate(divide="ignore", invalid="ignore"):
-        mu = it + 1.0 - np.log(np.log(np.abs(Z))) / np.log10(2.0)
+        mu = it + 1.0 - np.log(np.log(np.abs(Z))) / np.log(2.0)
 
     mu = np.nan_to_num(mu, nan=float(max_iter), posinf=float(max_iter), neginf=0.0)
     mu[interior] = max_iter
@@ -64,12 +64,12 @@ class MandelbrotApp:
         pygame.display.set_caption("Mandelbrot Set Explorer")
         self.screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
 
-        self.center = DEFAULT_CENTER        
-        self.scale = DEFAULT_SCALE        
+        self.center = DEFAULT_CENTER
+        self.scale = DEFAULT_SCALE
         self.max_iter = 200
         self.palette_idx = 0
-        self.dragging = False        
-        self.needs_render = True        
+        self.dragging = False
+        self.needs_render = True
         self.running = True
         self.show_intro()
 
@@ -92,7 +92,7 @@ class MandelbrotApp:
             y += r.get_height() + 8
         pygame.display.flip()
 
-        waiting = True        
+        waiting = True
         while waiting:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -125,23 +125,25 @@ class MandelbrotApp:
     def zoom_at(self, pos, factor):
         w, h = self.screen.get_size()
         mx, my = pos
-        new_scale = self.scale / factor        
+
+        new_scale = self.scale / factor
         if not (MIN_SCALE <= new_scale <= MAX_SCALE):
             return
-        aspect = w / h        
-        anchor_x = self.center.real + (mx / w - 0.5) * self.scale        
+
+        aspect = h / w
+        anchor_x = self.center.real + (mx / w - 0.5) * self.scale
         anchor_y = self.center.imag - (my / h - 0.5) * self.scale * aspect
 
         self.center = complex(
             anchor_x - (mx / w - 0.5) * new_scale,
             anchor_y + (my / h - 0.5) * new_scale * aspect,
         )
-        self.scale = new_scale        
-        zoom = DEFAULT_SCALE / self.scale        
+        self.scale = new_scale
+        zoom = DEFAULT_SCALE / self.scale
         self.max_iter = int(np.clip(200 + 150 * np.log10(max(1.0, zoom)), 200, 3000))
         self.needs_render = True
     def pan(self, rel):
-        dx, dy = rel        
+        dx, dy = rel
         unit = self.scale / self.screen.get_width()
         self.center = complex(self.center.real - dx * unit,
                               self.center.imag + dy * unit)
@@ -150,36 +152,37 @@ class MandelbrotApp:
         has_wheel = hasattr(pygame, "MOUSEWHEEL")
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                self.running = False            
+                self.running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key in (pygame.K_ESCAPE, pygame.K_q):
-                    self.running = False                
-            elif event.key == pygame.K_p:
+                    self.running = False
+                elif event.key == pygame.K_p:
                     self.palette_idx = (self.palette_idx + 1) % len(PALETTES)
-                    self.needs_render = True            
+                    self.needs_render = True
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 3:
-                    self.dragging = True                
-            elif not has_wheel and event.button in (4, 5):
+                    self.dragging = True
+                elif not has_wheel and event.button in (4, 5):
                     self.zoom_at(event.pos, 1.25 if event.button == 4 else 0.8)
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 3 and self.dragging:
-                    self.dragging = False                    
-                    self.needs_render = True            
+                    self.dragging = False
+                    self.needs_render = True
             elif event.type == pygame.MOUSEMOTION:
-                        if self.dragging:
-                            self.pan(event.rel)
+                if self.dragging:
+                    self.pan(event.rel)
             elif has_wheel and event.type == pygame.MOUSEWHEEL:
                 self.zoom_at(pygame.mouse.get_pos(), 1.2 ** event.y)
             elif event.type == pygame.VIDEORESIZE:
-                self.needs_render = tuple
+                self.needs_render = True
+
     def run(self):
         clock = pygame.time.Clock()
         while self.running:
             self.handle_events()
             if self.needs_render:
-                self.needs_render = False                
-            self.redraw()
+                self.needs_render = False
+                self.redraw()
             clock.tick(60)
         pygame.quit()
         sys.exit(0)
