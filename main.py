@@ -61,9 +61,8 @@ class MandelbrotApp:
 
     def __init__(self, width=1000, height=750):
         pygame.init()
-        pygame.display.set_caption("Mandelbrot Set Explorer")
+        pygame.display.set_caption("Mandelbrot Set Fractal Visualiser")
         self.screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
-
         self.center = DEFAULT_CENTER
         self.scale = DEFAULT_SCALE
         self.max_iter = 200
